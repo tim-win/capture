@@ -28,7 +28,7 @@ def create_folder():
             os.makedirs(path)
             return path
         except FileExistsError as e:
-            print('WARN:' e, '- Ignoring')
+            print('WARN:', e, '- Ignoring')
             continue
 
 
