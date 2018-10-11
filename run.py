@@ -5,11 +5,13 @@ from datetime import timedelta
 import os
 import sys
 import time
+import subprocess
 
 import pygame.camera
 
-DELAY = 8  # delay between images in seconds
+DELAY = 30  # delay between images in seconds
 BASE_PATH = '~/Pictures/stills/'
+
 
 def get_camera():
     pygame.camera.init()
@@ -17,6 +19,7 @@ def get_camera():
     cam = pygame.camera.Camera(camera, (1920, 1080))
     cam.start()
     return cam
+
 
 def create_folder():
     base_path = os.path.expanduser(BASE_PATH)
@@ -37,6 +40,8 @@ def main_loop(path):
 
     # Use a mark to keep time
     mark = datetime.now() - timedelta(seconds=DELAY)
+    start = mark
+    count = 0
     try:
         while True:
             if datetime.now() - mark > timedelta(seconds=DELAY):
@@ -44,13 +49,27 @@ def main_loop(path):
                 mark = datetime.now()
 
                 img = cam.get_image()
-                filename = datetime.now().strftime('%Y-%m-%d-%H:%M:%S.png')
+                filename = datetime.now().strftime('{0}.png'.format(str(count).zfill(4)))
+                count += 1
                 full_path = os.path.join(path, filename)
                 pygame.image.save(img, full_path)
                 print('Saved {0}...'.format(full_path))
                 cam.stop()
                 time.sleep(0.5)
     except KeyboardInterrupt:
+        print("Formatting Video")
+        cmd = [
+            'ffmpeg',
+            '-framerate',
+            '10',
+            '-i',
+            os.path.join(path, '%04d.png'),
+            '-r',
+            '30',
+            os.path.join(
+                os.path.expanduser('~/'), '{0}.mp4'.format(
+                    start.strftime('%Y-%m-%dT%H:%M:%S')))]
+        subprocess.call(cmd)
         return 0
     except Exception as e:
         print(e)
@@ -58,7 +77,7 @@ def main_loop(path):
     finally:
         try:
             cam.stop()
-        except:
+        except Exception:
             pass
 
 
@@ -66,9 +85,10 @@ def main():
     rc = 0
 
     path = create_folder()
-    
+
     rc = main_loop(path)
     return rc
+
 
 if __name__ == '__main__':
     sys.exit(main())
