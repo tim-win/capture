@@ -59,7 +59,7 @@ def main_loop(path):
     except KeyboardInterrupt:
         print("Formatting Video")
         cmd = [
-            'ffmpeg',
+            '/home/gregor/workspace/ffmpeg-build/FFMpeg/ffmpeg',
             '-framerate',
             '10',
             '-i',
